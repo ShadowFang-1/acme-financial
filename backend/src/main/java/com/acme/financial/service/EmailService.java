@@ -1,35 +1,51 @@
 package com.acme.financial.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class EmailService {
-    @Autowired
-    private JavaMailSender mailSender;
-
     @Value("${mail.from}")
     private String fromEmail;
 
+    @Value("${spring.mail.password}") // This is the API Key in Render environment variables
+    private String apiKey;
+
     @Async
     public void sendEmail(String to, String subject, String content) {
-        System.out.println(">>> [EMAIL START] Attempting background dispatch to: " + to + " FROM: " + fromEmail);
+        System.out.println(">>> [API EMAIL] Starting Dispatch to: " + to);
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(to);
-            message.setSubject(subject);
-            message.setText(content);
-            mailSender.send(message);
-            System.out.println(">>> [EMAIL SUCCESS] OTP Sent to: " + to);
+            URL url = new URL("https://api.brevo.com/v3/smtp/email");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("api-key", apiKey);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
+
+            // Manual JSON construction to avoid external library conflicts
+            String jsonPayload = String.format(
+                "{\"sender\":{\"email\":\"%s\"},\"to\":[{\"email\":\"%s\"}],\"subject\":\"%s\",\"textContent\":\"%s\"}",
+                fromEmail, to, subject, content
+            );
+
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = jsonPayload.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+            }
+
+            int code = conn.getResponseCode();
+            if (code >= 200 && code < 300) {
+                System.out.println(">>> [API SUCCESS] Email sent via Brevo HTTP REST API (unblockable port 443)");
+            } else {
+                System.err.println(">>> [API ERROR] Brevo rejection code: " + code);
+            }
         } catch (Exception e) {
-            System.err.println(">>> [EMAIL ERROR] Failed to send email: " + e.getMessage());
-            // Fallback for developers
-            System.out.println("FALLBACK CONTENT: " + content);
+            System.err.println(">>> [API CRITICAL] Handshake to Brevo API failed: " + e.getMessage());
         }
     }
 }
