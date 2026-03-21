@@ -5,7 +5,10 @@ const AuthContext = createContext();
 
 // Force the API to hit the backend directly on Render
 // This bypasses the need for complex proxy rules and makes it 100% reliable
-axios.defaults.baseURL = 'https://acme-financial-backend.onrender.com';
+// Use the local proxy in development, but the production URL in build
+axios.defaults.baseURL = import.meta.env.PROD 
+  ? 'https://acme-financial-backend.onrender.com' 
+  : ''; 
 
 export const useAuth = () => useContext(AuthContext);
 
@@ -20,7 +23,7 @@ export const AuthProvider = ({ children }) => {
       try {
         // Step 1: 'Is Awake' Sync - Ensure backend is responsive before checking auth
         // This prevents the 'blank white screen' during Render cold starts
-        await axios.get('/api/v1/status');
+        await axios.get('/api/v1/status', { timeout: 5000 });
         
         // Step 2: Initialize Auth if token exists
         if (token) {
