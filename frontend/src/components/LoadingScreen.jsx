@@ -36,7 +36,7 @@ const LoadingScreen = ({ message = "Securing your connection..." }) => {
 
       {/* Subtle Footer */}
       <div className="absolute bottom-10 text-slate-500 text-sm font-medium tracking-widest uppercase">
-        Antigravity Protection Active
+        Acme Protection Active
       </div>
     </div>
   );

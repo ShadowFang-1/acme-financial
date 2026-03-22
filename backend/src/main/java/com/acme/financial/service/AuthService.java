@@ -127,6 +127,13 @@ public class AuthService {
         user.setOtpExpiry(java.time.LocalDateTime.now().plusMinutes(5));
         repository.saveAndFlush(user);
 
+        // Security / Debug Dispatch: Always print to console for development visibility
+        System.out.println("========================================");
+        System.out.println(">>> [ANTIGRAVITY] SECURITY CODE DISPATCHED");
+        System.out.println(">>> TARGET: " + email);
+        System.out.println(">>> ACCESS CODE: " + otp);
+        System.out.println("========================================");
+
         // Production dispatch via Email (100% Free)
         emailService.sendEmail(
             email, 
@@ -134,6 +141,7 @@ public class AuthService {
             "Your ACME Financial login code is [" + otp + "]. Valid for 5 minutes."
         );
     }
+
 
     @Transactional
     public AuthenticationResponse verifyOtp(OtpVerificationRequest request) {

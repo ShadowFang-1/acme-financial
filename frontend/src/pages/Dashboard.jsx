@@ -211,12 +211,13 @@ const Dashboard = () => {
     setTxDetails(null);
   };
 
-  const currentAcc = accounts[activeAccountIndex] || accounts[0];
-  const filteredTransactions = recentTransactions.filter(tx => 
+  const currentAcc = (accounts && accounts.length > 0) ? (accounts[activeAccountIndex] || accounts[0]) : { type: 'SAVINGS', accountNumber: '...', balance: 0, frozen: false };
+  const filteredTransactions = (recentTransactions || []).filter(tx => 
     tx.description?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     tx.type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    tx.amount.toString().includes(searchTerm)
+    tx.amount?.toString().includes(searchTerm)
   );
+
 
   // Verification & Auth Guard
   if (!user) return null;
@@ -294,7 +295,8 @@ const Dashboard = () => {
                     <TrendingUp size={32} />
                   </div>
                   <h3 className="text-3xl font-black text-slate-800 tracking-tighter uppercase italic">Inject Capital</h3>
-                  <p className="text-slate-500 font-medium">Top up your {currentAcc.type} account instantly</p>
+                  <p className="text-slate-500 font-medium">Top up your {currentAcc?.type || 'active'} account instantly</p>
+
                 </div>
                 
             <div className="space-y-6 sm:space-y-8">

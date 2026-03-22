@@ -21,9 +21,12 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       
       try {
-        // Step 1: 'Is Awake' Sync - Ensure backend is responsive before checking auth
-        // This prevents the 'blank white screen' during Render cold starts
-        await axios.get('/api/v1/status', { timeout: 5000 });
+        // Step 1: Health Check (Non-blocking)
+        // We no longer await this globally as it can cause 'blank screen' hangs
+        // if the proxy or backend is slow. Instead, we proceed to auth check.
+        axios.get('/api/v1/status').catch(() => {
+           console.warn("[Antigravity] Backend status check failed, but proceeding with auth...");
+        });
         
         // Step 2: Initialize Auth if token exists
         if (token) {
@@ -40,9 +43,13 @@ export const AuthProvider = ({ children }) => {
           };
           setUser(userData);
           localStorage.setItem('user', JSON.stringify(userData));
+        } else {
+          // Explicitly clear user if no token found during init
+          setUser(null);
         }
       } catch (err) {
-        console.warn("[Antigravity] Initial sync or auth check failed:", err.message);
+        console.error("[Antigravity] Initial auth check failed:", err.message);
+        // Clear state on failure to ensure UI doesn't hang in 'auth-checking' state
         if (token) {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
@@ -50,11 +57,13 @@ export const AuthProvider = ({ children }) => {
           setUser(null);
         }
       } finally {
+        // Always stop loading to prevent blank screens
         setLoading(false);
       }
     };
     initAuth();
   }, []);
+
 
   const login = async (identifier, password) => {
     localStorage.removeItem('token');

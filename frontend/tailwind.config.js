@@ -20,9 +20,9 @@ export default {
         accent: '#E63946',
       },
       fontFamily: {
-        inter: ['Inter', 'sans-serif'],
-        outfit: ['Outfit', 'sans-serif'],
+        poppins: ['Poppins', 'sans-serif'],
       },
+
     },
   },
   plugins: [],

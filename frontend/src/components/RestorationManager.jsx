@@ -10,12 +10,13 @@ import LoadingScreen from './LoadingScreen';
 const RestorationManager = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const hasRestored = React.useRef(false);
 
   useEffect(() => {
     // 1. Session Preservation Logic:
     // Store the current route in sessionStorage whenever it changes, EXCEPT for login/register pages
     const currentPath = location.pathname;
-    const excludedRoutes = ['/', '/login', '/register', '/forgot-password'];
+    const excludedRoutes = ['/', '/login', '/register', '/forgot-password', '/reset-password'];
     
     if (!excludedRoutes.includes(currentPath)) {
       sessionStorage.setItem('securepay_last_route', currentPath);
@@ -23,12 +24,16 @@ const RestorationManager = ({ children }) => {
 
     // 2. Landing Logic:
     // When the app initializes at the root ('/'), check if there's a saved session route to restore.
-    const savedRoute = sessionStorage.getItem('securepay_last_route');
-    if (savedRoute && currentPath === '/') {
-      console.log(`[Antigravity] Restoring session context to: ${savedRoute}`);
-      navigate(savedRoute, { replace: true });
+    if (!hasRestored.current) {
+        const savedRoute = sessionStorage.getItem('securepay_last_route');
+        if (savedRoute && currentPath === '/' && savedRoute !== '/') {
+          console.log(`[Antigravity] Restoring session context to: ${savedRoute}`);
+          hasRestored.current = true;
+          navigate(savedRoute, { replace: true });
+        }
     }
   }, [location.pathname, navigate]);
+
 
   // UI Restoration: Always save route just BEFORE leaving/refreshing the page
   useEffect(() => {

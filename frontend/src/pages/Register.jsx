@@ -11,8 +11,11 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [country, setCountry] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [dobDay, setDobDay] = useState('');
+  const [dobMonth, setDobMonth] = useState('');
+  const [dobYear, setDobYear] = useState('');
   const [error, setError] = useState('');
+
   const [loading, setLoading] = useState(false);
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -24,7 +27,9 @@ const Register = () => {
     setLoading(true);
     setError('');
     try {
-      const result = await register(username, email, password, phoneNumber, country, dateOfBirth);
+      const formattedDob = `${dobYear}-${dobMonth.padStart(2, '0')}-${dobDay.padStart(2, '0')}`;
+      const result = await register(username, email, password, phoneNumber, country, formattedDob);
+
       if (result.requiresOtp) {
         setIsOtpModalOpen(true);
       } else {
@@ -100,7 +105,8 @@ const Register = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Countries</label>
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Country</label>
+
                 <div className="relative">
                   <Landmark className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <select
@@ -313,21 +319,57 @@ const Register = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 ml-1">Date of Birth</label>
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Date of Birth</label>
+              <div className="grid grid-cols-3 gap-3">
+                {/* Day Input */}
                 <input
-                  type="date"
+                  type="text"
                   required
-                  className="input-field pl-11"
-                  value={dateOfBirth}
-                  onChange={(e) => setDateOfBirth(e.target.value)}
+                  placeholder="Day"
+                  maxLength="2"
+                  className="input-field text-center"
+                  value={dobDay}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    if (val === '' || (parseInt(val) >= 1 && parseInt(val) <= 31)) setDobDay(val);
+                  }}
+                />
+                
+                {/* Month Select */}
+                <select
+                  required
+                  className="input-field px-2"
+                  value={dobMonth}
+                  onChange={(e) => setDobMonth(e.target.value)}
+                >
+                  <option value="">Month</option>
+                  {[
+                    "January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"
+                  ].map((m, i) => (
+                    <option key={m} value={(i + 1).toString()}>{m}</option>
+                  ))}
+                </select>
+
+                {/* Year Input */}
+                <input
+                  type="text"
+                  required
+                  placeholder="Year"
+                  maxLength="4"
+                  className="input-field text-center"
+                  value={dobYear}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    if (val === '' || val.length <= 4) setDobYear(val);
+                  }}
                 />
               </div>
             </div>
 
+
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 ml-1">Full Name</label>
+              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
               <div className="relative">
                 <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                 <input
@@ -342,7 +384,7 @@ const Register = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 ml-1">Email Address</label>
+              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                 <input
@@ -357,7 +399,7 @@ const Register = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 ml-1">Password</label>
+              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                 <input
@@ -377,6 +419,7 @@ const Register = () => {
                 </button>
               </div>
             </div>
+
 
             <button
               type="submit"
