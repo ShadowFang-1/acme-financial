@@ -6,9 +6,9 @@ const AuthContext = createContext();
 // Force the API to hit the backend directly on Render
 // This bypasses the need for complex proxy rules and makes it 100% reliable
 // Use the local proxy in development, but the production URL in build
-axios.defaults.baseURL = import.meta.env.PROD 
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || (import.meta.env.PROD 
   ? 'https://acme-financial-backend.onrender.com' 
-  : ''; 
+  : ''); 
 
 export const useAuth = () => useContext(AuthContext);
 
